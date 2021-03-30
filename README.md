@@ -1,5 +1,5 @@
 # hadoop
-#### A. File: `hadoopANDspark_install_on_Colab.ipynb`
+#### A. File: `hadoop_spark_install_on_Colab.ipynb`
 This file shows many things:
 > How to install hadoop 3.2.2 on Google Colab<br>
 > How to configure hadoop 3.2.2 on Colab<br>
