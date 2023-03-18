@@ -1,0 +1,525 @@
+##  Last amended: 22nd October, 2021
+##  My folder: /home/ashok/Documents/hadoop_streaming
+
+
+""" 
+References:
+	1. http://www.catonmat.net/blog/awk-book/
+	2. http://www.catonmat.net/blog/wp-content/uploads/2008/09/awk1line.txt
+	3. http://www.catonmat.net/download/awk.cheat.sheet.txt
+	4. http://www.catonmat.net/blog/awk-one-liners-explained-part-one/
+	5. http://www.catonmat.net/blog/awk-one-liners-explained-part-two/
+	6. http://www.catonmat.net/blog/awk-one-liners-explained-part-three/
+
+	awk: Aho, Weinberger and Kernigham
+
+"""
+
+
+## Objectives:
+#	1. Learn awk programming 
+#       2. awk special variables
+#       3. awk BEGIN and END patterns		# 5
+#       4. awk match pattern in a field		# 8
+#       5. awk if-else if-else branching
+#       6. awk regular expressions
+
+
+# 0.0 What does awk do?
+
+	i)  Scans a text file line-by-line
+	ii) Splits each input line into fields
+	iii)Compares input line/fields to pattern
+	iv) If match found, take some action on matched text
+
+
+
+# 1.0 A typical awk program:
+
+	awk '
+	      pattern { action }
+	      pattern { action }
+	      ...
+            '  file1 file2 ...
+
+#  Awk automatically splits each line into columns and
+#  puts each column in variables $1, $2, $3, etc. 
+#  $0 stores complete line.
+#  When awk splits a line, the character at which
+#  split is to occur must also be indicated.
+#  Default split point is space. The following line
+#  has four fields:
+
+	this line has five fields
+
+	this =>   $1
+	line =>   $2
+	has  =>   $3
+	five =>   $4
+	fields => $5
+        this line has five fields => $0
+	        
+
+
+# 2.0 Change folder
+
+       cd /home/ashok/Documents/hadoop_streaming
+
+
+
+# 3.0 
+#  This one-liner prints just the 2nd field of
+#   each line. This value is available in variable
+#    $2.
+#  This awk statement contains no 'pattern' statement.
+#  It implies, just take the {action}.
+
+
+	awk '{ print $2 }' bbs-list.txt
+
+
+# 3.1 In an awk rule, either the pattern or the
+#     action can be omitted, but not both. If the
+#     pattern is omitted, then the action is
+#     performed for every input line. If the action
+#     is omitted, the default action is to print
+#     all lines that match the pattern.
+
+
+## 3.2 action statement missing. 
+#      Default action is print line:
+
+	awk '/th/'  bbs-list.txt
+
+
+# 3.3 Print two fields per line:
+
+	awk '{ print $2  $1 }' bbs-list.txt
+
+
+# 3.4 Print two fields separated by space
+
+	awk '{ print $2 " " $1 }' bbs-list.txt
+
+# 3.4.1 You can change table column sequence, as:
+
+	awk '/foo/ {print $2 " "  $1 " " $3 }' bbs-list.txt 
+
+
+# 3.5 Print two fields separated by newline
+
+	awk '{ print $2 "\n" $1 }' bbs-list.txt
+
+# 3.6 The above is same as two print statements:
+#     Each print is followed by new line:
+
+	awk '{ print $2 ; print $1 }' bbs-list.txt
+
+
+# 3.7 Print those lines where a pattern '21' occurs.
+#     This awk statement only contains pattern but
+#     no explicit acton. Default action is { print $0 }.
+#     All of the following three statements are same:
+
+	awk ' /21/ ' bbs-list.txt
+
+        awk ' /21/ {print } ' bbs-list.txt
+
+        awk ' /21/ {print $0 } ' bbs-list.txt
+
+
+#     The slashes around 21, indicate that ‘21’
+#     is a pattern to search for. This type of
+#     pattern is called a regular expression,
+#     print $0’ means print the current line
+
+
+# 3.8 Search for pattern 'foo' :
+
+       awk '/foo/ { print $0 }' bbs-list.txt
+
+# 3.9 And print lines which do not match pattern:
+
+	awk '!/foo/ { print $0 }' bbs-list.txt
+
+
+# 3.10 This awk statement contains two rules:
+#      Two rules:The awk utility reads the input files 
+#      one line at a time. For each line, awk tries the
+#      patterns of each of the rules. If several patterns
+#      match then several actions are run, in the order
+#      in which they appear in the awk program.
+#      If no patterns match, then no actions are run.
+
+	awk ' /12/ { print $0 }
+      	      /21/ {  print $0 }
+            ' bbs-list.txt
+
+
+# 3.10.1 If a line matches both 85 and 49 then two fields
+#        are printed. Else, one 
+
+	awk ' /85/ { print $2 }
+      	      /49/ {  print $3 }
+            ' bbs-list.txt
+
+
+
+# 3.11 Above rules are same as:
+
+        awk ' /12/ { print $0 } ;  /21/ {  print $0 }' bbs-list.txt
+
+
+# 3.12 Another set of two rules:
+
+	awk '  { print $2 } ; /foo/ {print $1 }' bbs-list.txt
+
+
+
+
+# 4
+
+## 4.1 awk contains a number of special variables
+##     such as, 
+
+#	   FNR : The current record number of the line being processed
+#           NR : Number of records seen so far by awk
+#                As each line passes through awk, NR gets incremented by 1
+#	    NF : Field number. For every line, as each field passes
+#                through awk, NF is icnremented by 1.
+#           RS : Record separator (default is newline or \n )
+#           FS : Field  separator (default space)
+#          ORS : Output Record separator ie while printing output (default \n)         
+
+
+# 4.2 Print each record preceded by line-number:
+#     The whole line itself goes into variable $0.
+#      This one-liner prints line but prepends 
+#       value of NR special variable and a 
+#        colon ": " after it.
+#        The special variable NR always contains the 
+#         current line number.
+# Try it:
+
+	awk '{ print NR ": " $0 }' bbs-list.txt
+
+
+# 4.3 Precede each line by its line number 
+#     followed by tab. Process multiple files:
+
+	awk '{print NR "\t" $0}' bbs-list.txt inv-ship.txt
+	awk '{print NR "\t" $0}' *-*.txt
+
+
+
+## 5. BEGIN and END patterns:
+#     BEGIN and END are special patterns. They 
+#     are not used to match input records. Rather,
+#     they are used for supplying start-up or
+#     clean-up information to your awk script.
+#     A BEGIN rule is executed, once, before the
+#     first input record has been read. An END 
+#     rule is executed, once, after all the input
+#     has been read.
+
+#     Assume record separator is '/', 
+#     The following single line contains TWO records,
+#     each with four fields:
+
+      "this is first record/this is second record"
+
+#     In the following rule, a special variable,
+#     RS is used to define Record Separator.
+#     Record Separator is forward slash (/).
+
+        awk ' BEGIN { RS = "/" } 
+              { print $0 }' bbs-list.txt
+
+
+# 5.1 Count the number of words in a file.
+#     Assume each word has a space before
+#     and after it.
+#     Here another special variable is used.
+#     It's the NF that stands for number of fields,
+#     or number of columns, or number of words in
+#     the current line. 
+#     This one-liner then just sums the total number
+#     of words up and prints them before quitting
+#     in the END block.
+
+	awk '{ total = total + NF } 
+             END { print total }' howStreamingWorks.txt 
+
+
+## 6. Different field separator:
+#     Suppose you want to print the list of all users
+#     on your system. With Awk it's as simple as this
+#     one-liner:
+
+# 6.1 Print system and other users in your
+#     Linux OS.
+#     First have a look at the file:
+
+	cat /etc/passwd
+
+# 6.2 Now just print the user names
+#     Take each line from /etc/passwd, 
+#     split it on the colon and print
+#     the first field of each line."
+
+	awk -F: '{ print $1 }' /etc/passwd
+
+
+# 6.3 Use special variable FS, as with BEGIN pattern:
+
+	awk 'BEGIN { FS = ":" } 
+            { print $1 }' /etc/passwd
+
+
+# 6.4 And here is the first field of a csv file:
+
+	awk -F, '{ print $1 }' inv-ship.csv
+
+
+
+## 7. END pattern
+
+#   Count how many 'foo' occur in the data?
+#   Two rules. The IInd rule increments the variable
+#   foobar every time a record containing the pattern
+#   ‘foo’ is read. The END rule prints the value of 
+#   foobar at the end of the run.
+
+        awk 'BEGIN { print "Analysis of ‘foo’" }
+             /foo/ { ++foobar }
+             END { print "‘foo’ appears " foobar " times." }' bbs-list.txt
+
+## 8. Match a pattern occurring in specifc field:
+
+## 8.1 Print each record in the file ‘bbs-list.txt' whose 
+#      first field ($1) contains the string ‘foo’. 
+#      The operator ‘~’ is called a matching operator. It 
+#      tests whether the field $1 matches a given regular
+#      expression.
+
+	awk '$1 ~ /foo/ { print $0 }' bbs-list.txt
+
+#       The above is same as:
+	awk '$1 ~ "foo" { print $0 }' bbs-list.txt
+
+#	But not the same as:
+	awk '$1 ~ foo { print $0 }' bbs-list.txt
+
+# 8.2 Third field starts with '21'.
+#     The -F'|' sets the field separator to |. The $3~/^21/ will be true
+#     if the 3rd field starts with 21. 
+
+	awk -F'|' '$3~/^21/' smarks.txt
+
+# 8.3 Third field matches '12' that occur at position 2 within the field
+
+	awk -F'|' 'substr($3,2,2) ~/12/' smarks.txt
+
+# 8.4 Third field matches 21 at-the-end of field AND 8th field 
+#     matches 'fail'
+
+	awk -F'|' ' ($3 ~ /21$/) &&  ($8 ~ /fail/)  {print $0} ' smarks.txt 
+
+# 9. Print lines from 8 to 12:
+
+	awk 'NR==8,NR==12' bbs-list.txt 
+
+#    Use if-statement within curly-braces block:
+
+	awk ' { if (NR >= 8 && NR <= 12) print } ' bbs-list.txt
+
+
+# 9.1 In inv-ship.csv, change everything to lowercase.
+#     All string functions are used within {action}
+#     statements.
+#     Use tolower()
+
+	awk -F, '{print (tolower($1)) }  ' inv-ship.csv 
+
+#    For string functions, see:
+#    https://www.gnu.org/software/gawk/manual/html_node/String-Functions.html
+
+
+# 9.2 Substitute (find and replace) "foo" with "bar"
+#     on each line
+
+	awk '{gsub(/foo/,"bar");print} ' bbs-list.txt
+
+#     But this does not work:
+
+	awk '{print(gsub(/foo/,"bar"))   } ' bbs-list.txt
+
+# 9.3 Substitute "foo" with "bar" EXCEPT for lines 
+#     which contain "baz"
+
+	awk '!/baz/ {gsub(/foo/, "bar")};{print}' bbs-list.txt
+
+
+#################
+Awk Regular Expressions
+#################
+# Ref: https://www.tutorialspoint.com/awk/awk_regular_expressions.htm
+
+# Dot (.)
+# -------
+# 10.0 It matches any single character except the end of 
+#      line character (for example \n).Check what happens below:
+
+echo -e "cat\ntat\ncot\ncots\npaste" | awk '/c.t/'
+
+#(Note try:
+	echo -e "cat\ntat\ncot\ncots\npaste" 
+	echo    "cat\ntat\ncot\ncots\npaste" 
+#	)
+
+# ^ matches start of line
+# -----------------------
+# 10.1  ^ matches start of line. 
+
+echo -e "This\nThat\nThere\nTheir\nthese\nhat" | awk '/^The/'
+
+# $ matches end of line
+# ---------------------
+# 10.2 $ matches end of line.
+
+echo -e "knife\nknow\nfun\nfin\nfan\nnine" | awk '/ne$/'
+
+# [] Match character set
+# -------------------
+# 10.3 [] is used to match only one out of several characters.
+
+echo -e "Call\nTall\nBall\nWall" | awk '/[CT]all/'
+
+# Exclusive set
+# --------------
+# 10.4 [^ ] In exclusive set, carat negates set of characters
+#           in square brackets. 
+
+echo -e "Call\nTall\nBall\nwall" | awk '/[^CT]all/'
+
+
+# Alteration (OR)
+-----------------
+# 10.5 A vertical bar allows regular expressions to be
+#      logically ORed. 
+
+echo -e "Call\nTall\nBall\nSmall\nShall" | awk '/Call|Ball/'
+echo -e "Call\nTall\nBall\nSmall\nShall\nwall" | awk '/[CB]all|[TS]hall/'
+
+# ? Zero or One Occurrence
+--------------------------
+# 10.6  ? matches zero or one occurrence of the preceding character or group.
+
+echo -e "Colour\nColor" | awk '/Colou?r/'
+
+
+# Zero or More Occurrence
+--------------------------------------
+# 10.7 * matches zero or more occurrences of preceding character or group.
+
+echo -e "ca\ncat\ncatt" | awk '/cat*/'
+echo -e "ca\ncat\ncatt" | awk '/(cat)*/'     # (cat) may not occur also
+echo -e "ca\ncat\ncatt" | awk '/(cat)*/'    # (cat) must occur at least once
+
+# One or More Occurrence
+--------------------------------------
+# 10.8 + matches one or more occurrence of the preceding character or group.
+
+echo -e "111\n22\n123\n234\n456\n222"  | awk '/2+/'
+
+# Grouping
+# 10.9 Parentheses () are used for grouping and the character | is used for alternatives.
+
+echo -e "Apple Juice\nApple Pie\nApple Tart\nApple Cake"  |  awk   '/Apple (Juice|Cake)/'
+
+################
+# awk if else statement
+################
+# Ref: https://www.thegeekstuff.com/2010/02/awk-conditional-statements/
+
+# Create a dataset, called, college_marks.txt,  as below.
+# Just copy and paste.
+
+#mkdir -p /home/ashok/Documents/hadoop_streaming
+echo -e "ravi \t   e345   \t    45    \t    80   \t  90"   > /home/ashok/Documents/hadoop_streaming/college_marks.txt
+echo -e "akh  \t   e879   \t    20    \t    30	 \t  30"  >> /home/ashok/Documents/hadoop_streaming/college_marks.txt
+echo -e "sun  \t   e323   \t    100   \t    80   \t  45"  >> /home/ashok/Documents/hadoop_streaming/college_marks.txt
+echo -e "ani  \t   e908   \t    81    \t    82   \t  87"  >> /home/ashok/Documents/hadoop_streaming/college_marks.txt
+echo -e "kin  \t   e098   \t    60    \t    30   \t  90"  >> /home/ashok/Documents/hadoop_streaming/college_marks.txt
+echo -e "pip  \t   e212	  \t    57    \t    51   \t  56"  >> /home/ashok/Documents/hadoop_streaming/college_marks.txt
+cat  /home/ashok/Documents/hadoop_streaming/college_marks.txt
+
+
+# 11.0 Get ravi's marks using 'if'. 
+#           'if' must be inside {}. Following is incorrect:
+
+awk ' if ($1)  { print $0} '  college_marks.txt
+
+# 11.1 This is correct:
+awk ' { if ($1 == "ravi")   { print $0} } '  college_marks.txt
+# 11.2 This also works:
+awk ' $1 ~ "ravi"  {print} ' college_marks.txt
+
+# 11.3 Get who all have passed. 
+#           Note curly brackets inside
+#          curly brackets
+
+awk ' {
+               total = $3 + $4 + $5  
+              if (total > 150)  {print $0}
+            }   ' college_marks.txt
+        
+
+# 11.4 Generate pass-fail report:
+#            Use if-else branching
+
+awk ' {
+                if  (  ($3 > 50)  && ($4 > 50)  && ($5 > 50) ) 
+                     {print $0  "-pass" }
+                else 
+                     {print $0 "-Fail" }
+  } ' college_marks.txt
+
+# 11.4.1 This also works without inner curly-brackets
+
+awk ' {
+                if  (  ($3 > 50)  && ($4 > 50)  && ($5 > 50) ) 
+                     print $0  "-pass" 
+                else 
+                     print $0 "-Fail" 
+  } ' college_marks.txt
+
+# 11.5 Find average marks and grades for every student:
+#           Either use multiple if-statements
+
+awk ' {
+                  total = $3 + $4 + $5
+                  avg = total / 3
+                 if (avg >= 80)
+                     print $0 "--Grade A"
+                if ( (avg < 80) && (avg >= 70))
+                    print $0  "--Grade B"
+           }   '   college_marks.txt
+
+# 11.5.1 OR use if--else if --else statement
+
+awk ' {
+                  total = $3 + $4 + $5
+                  avg = total / 3
+                 if (avg >= 80)
+                     print $0 "--Grade A"
+                else if  (avg >= 70)
+                    print $0  "--Grade B"
+               else print $0 "--Grade C"
+
+           }   '   college_marks.txt
+
+
+################
+# ToDo: awk for--loop
+################
