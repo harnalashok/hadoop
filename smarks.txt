@@ -1,0 +1,9 @@
+DHARAM|50|2003|phy|f_exam|15/06/1989|3490|pass|M
+SUNIL|70|2004|chem|s_exam|23/07/2007|4500|pass|M
+VIKAS|80|2004|math|f_exam|18/12/2001|2098|fail|M
+ROHIT|30|2000|eng|s_exam|01/01/1992|4900|supp|F
+KAVITA|65|2117|hindi|f_exam|01/11/1998|5000|fail|F
+ABHI|65|2017|hindi|f_exam|01/11/1998|5000|fail|F
+BIMAL|65|2127|hindi|f_exam|01/11/1998|5000|fail|F
+ASHOK|68|2221|hindi|f_exam|01/11/1998|5000|fail|F
+CATY|43|2221|math|g_exam|01/12/1921|5000|supp|F
