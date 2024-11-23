@@ -8,5 +8,5 @@ This file shows many things, like:
 > How to access a file on hadoop (installed on colab) from spark (installed on colab)<br>
 
 
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/auhwFwx1DPY&t=11s/0.jpg)](http://www.youtube.com/watch?v=auhwFwx1DPY&t=11s "Grafana time series video")
+[![IMAGE ALT TEXT](https://github.com/harnalashok/hadoop/blob/main/abstract-1961255_1920.jpg)](http://www.youtube.com/watch?v=auhwFwx1DPY&t=11s "Grafana time series video")
 
